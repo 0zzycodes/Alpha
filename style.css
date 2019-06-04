@@ -1,0 +1,55 @@
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #1d1d1d;
+}
+button {
+  font-size: 1.2em;
+}
+.light {
+  display: none;
+}
+.mic {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  display: flex;
+  padding: 2px 20px 18px 2px;
+  cursor: pointer;
+  position: relative;
+}
+.overlay {
+  content: '';
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  background: #ff150080;
+  /* border: 3px solid #f324; */
+  transform: scale(1);
+  z-index: -1;
+  animation: voice 0.5s linear infinite alternate;
+  display: none;
+}
+@keyframes voice {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.3);
+  }
+}
+img {
+  margin: auto;
+}
+p {
+  color: #f2f2f2;
+}
