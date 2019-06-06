@@ -1,6 +1,7 @@
 const speak = window.speechSynthesis;
 const Talk = document.querySelector('.mic');
 const par = document.querySelector('p');
+const Bat_charging = document.querySelector('#battery');
 const dark = document.querySelector('.dark');
 const light = document.querySelector('.light');
 const active = document.querySelector('.overlay');
@@ -15,9 +16,11 @@ recognition.onstart = () => {
 };
 
 recognition.onsoundstart = () => {
-  active.style.animationDuration = '.1s';
+  par.textContent = 'Listening...';
+  active.style.animationDuration = '.05s';
 };
 recognition.onsoundend = () => {
+  par.textContent = '';
   active.style.animationDuration = '.5s';
 };
 
@@ -28,45 +31,65 @@ recognition.onresult = event => {
 };
 
 Talk.addEventListener('click', () => {
-  // window.speechSynthesis.getVoices().forEach(voice => console.log(voice));
-  // console.log(window.speechSynthesis.getVoices());
+  updateBattery();
   recognition.start();
 });
+console.log(recognition);
 
-let voices = [];
-// const getVoice = () => {
-//   if (speak.onvoiceschanged !== undefined) {
-//     speak.onvoiceschanged = getVoice;
-//   }
-//   voices = speak.getVoices();
-//   voices[1].default = true;
-//   console.log(voices[1]);
-// };
+recognition.onend = () => {
+  active.style.display = 'none';
+  // recognition.start();
+};
+
+// let voices = [];
+
+const updateBattery = () => {
+  navigator
+    .getBattery()
+    .then(battery => {
+      console.log(battery);
+      const level = battery.level;
+      const charging = battery.charging;
+      const batteryChargeStatus = `${
+        level * 100 === 100 ? 'Full' : level * 100 + '% '
+      }`;
+      if (charging) {
+        Bat_charging.textContent =
+          batteryChargeStatus === 'Full'
+            ? 'Disconnect the charger. Your device is fully charged'
+            : `Currently Charging, ${batteryChargeStatus} charged`;
+      } else {
+        Bat_charging.textContent =
+          batteryChargeStatus === 'Full'
+            ? 'Your device is fully charged'
+            : `you have ${batteryChargeStatus} left `;
+      }
+
+      // let batteryText =
+    })
+    .catch(err => err);
+};
 
 const alphaReply = message => {
-  // if (speak.onvoiceschanged !== undefined) {
-  //   speak.onvoiceschanged = get;
-  // }
   voices = speak.getVoices();
   const alphaResponse = new SpeechSynthesisUtterance();
-
+  active.style.display = 'block';
   if (message.includes('your name')) {
     alphaResponse.text = `Alpha`;
   } else if (message.includes('Alpha')) {
     alphaResponse.text = 'yes, how can i help you';
-  } else if (message.includes('are you')) {
+  } else if (message.includes('who are you')) {
     alphaResponse.text = 'I am your personal assistant, Alpha';
   } else if (message.includes('my name')) {
     alphaResponse.text = 'your name is, ebrahim';
+  } else if (message.includes('battery')) {
+    alphaResponse.text = ` ${Bat_charging.textContent}`;
   } else if (
     message.includes('hello') ||
     message.includes('hi Alpha') ||
     message.includes('up')
   ) {
     alphaResponse.text = 'hi, ebrahim, how can i help you?';
-    recognition.onend = () => {
-      recognition.start();
-    };
   } else if (message.includes('age') || message.includes('how old are')) {
     alphaResponse.text = 'Why do you care?';
   } else if (
@@ -76,7 +99,7 @@ const alphaReply = message => {
     let date = new Date();
     let hours = date.getHours();
     let minutes = date.getMinutes();
-    const am_pm = hours >= 12 ? 'pm' : 'am';
+    const am_pm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     minutes = minutes < 10 ? `o${minutes}` : minutes;
     alphaResponse.text = `The time is ${hours} ${minutes} ${am_pm}`;
@@ -86,13 +109,13 @@ const alphaReply = message => {
     alphaResponse.text = `what is so funny`;
   } else if (message.includes('so cool')) {
     alphaResponse.text = `I know right, hahaha`;
-  } else if (message.includes('activate dark')) {
+  } else if (message.includes('dark')) {
     alphaResponse.text = 'dark mode activated';
     document.body.style.background = '#1d1d1d';
     Talk.style.background = '#ffffff';
     dark.style.display = 'block';
     light.style.display = 'none';
-  } else if (message.includes('activate light')) {
+  } else if (message.includes('light')) {
     alphaResponse.text = 'light mode activated';
     document.body.style.background = '#ffffff';
     Talk.style.background = '#1d1d1d';
@@ -108,8 +131,7 @@ const alphaReply = message => {
   } else {
     alphaResponse.text = `i dont understand`;
   }
-  console.log(alphaResponse.text);
-
+  // console.log(alphaResponse.text);
   alphaResponse.voice = voices[0];
   alphaResponse.volume = 1;
   alphaResponse.rate = 1;

@@ -24,6 +24,9 @@ button {
   cursor: pointer;
   position: relative;
 }
+span {
+  display: none;
+}
 .overlay {
   content: '';
   width: 100%;
