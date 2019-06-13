@@ -24,7 +24,8 @@ button {
   cursor: pointer;
   position: relative;
 }
-span {
+#weather,
+#battery {
   display: none;
 }
 .overlay {

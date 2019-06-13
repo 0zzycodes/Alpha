@@ -1,10 +1,31 @@
 const speak = window.speechSynthesis;
 const Talk = document.querySelector('.mic');
+const desc = document.querySelector('#description');
+const temp = document.querySelector('#temp');
 const par = document.querySelector('p');
 const Bat_charging = document.querySelector('#battery');
 const dark = document.querySelector('.dark');
 const light = document.querySelector('.light');
 const active = document.querySelector('.overlay');
+const api = '4d11a4dfc8cc18f3f8d580bbf2d86094';
+const city = 'Kuala Lumpur';
+const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api}`;
+
+fetch(url)
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    const temperature = Math.floor(
+      ((data.main.temp_max - 273.15) * 9) / 5 + 32
+    );
+    let description = data.weather[0].description;
+    if (description.includes('broken clouds')) {
+      description = 'Mostly Cloudy';
+    }
+    temp.textContent = `${temperature} fahrenheit`;
+    desc.textContent = description;
+  })
+  .catch(err => console.log('Error:', err));
 
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -25,54 +46,71 @@ recognition.onsoundend = () => {
 };
 
 recognition.onresult = event => {
+  updateBattery();
   const transcript = event.results[0][0].transcript;
   alphaReply(transcript);
   // par.textContent = transcript;
 };
 
 Talk.addEventListener('click', () => {
-  updateBattery();
+  window.onloadstart;
   recognition.start();
+  window.clearTimeout;
 });
-console.log(recognition);
 
 recognition.onend = () => {
   active.style.display = 'none';
-  // recognition.start();
 };
-
-// let voices = [];
 
 const updateBattery = () => {
   navigator
     .getBattery()
     .then(battery => {
-      console.log(battery);
       const level = battery.level;
       const charging = battery.charging;
+      const dischargingtime = Math.floor(battery.dischargingTime / 3600);
+      const toHours = dischargingtime * 60;
+      const dischargingtimeM = (battery.dischargingTime / 60).toFixed(0);
+      const minuteLeft = dischargingtimeM - toHours;
+
+      const timeLeft =
+        dischargingtime === 0
+          ? `approximately ${minuteLeft} minutes on battery`
+          : `approximately ${
+              dischargingtime === 1
+                ? dischargingtime + 'hour'
+                : dischargingtime + 'hours'
+            } ${minuteLeft} minutes on battery`;
+
       const batteryChargeStatus = `${
         level * 100 === 100 ? 'Full' : level * 100 + '% '
       }`;
       if (charging) {
         Bat_charging.textContent =
           batteryChargeStatus === 'Full'
-            ? 'Disconnect the charger. Your device is fully charged'
+            ? 'Disconnect charger, your device is fully charged'
             : `Currently Charging, ${batteryChargeStatus} charged`;
       } else {
         Bat_charging.textContent =
           batteryChargeStatus === 'Full'
             ? 'Your device is fully charged'
-            : `you have ${batteryChargeStatus} left `;
+            : `you have ${batteryChargeStatus} left, ${timeLeft}`;
       }
-
-      // let batteryText =
     })
     .catch(err => err);
 };
 
+const greetings = [
+  'hi, ebrahim, how can i help you?',
+  'hi, ebrahim',
+  'hi, how can i help you?'
+];
+const choice = greetings[Math.floor(Math.random() * 3)];
+
 const alphaReply = message => {
   voices = speak.getVoices();
   const alphaResponse = new SpeechSynthesisUtterance();
+  const choice = greetings[Math.floor(Math.random() * 3)];
   active.style.display = 'block';
   if (message.includes('your name')) {
     alphaResponse.text = `Alpha`;
@@ -85,11 +123,11 @@ const alphaReply = message => {
   } else if (message.includes('battery')) {
     alphaResponse.text = ` ${Bat_charging.textContent}`;
   } else if (
-    message.includes('hello') ||
+    message.includes('ello') ||
     message.includes('hi Alpha') ||
     message.includes('up')
   ) {
-    alphaResponse.text = 'hi, ebrahim, how can i help you?';
+    alphaResponse.text = choice;
   } else if (message.includes('age') || message.includes('how old are')) {
     alphaResponse.text = 'Why do you care?';
   } else if (
@@ -125,14 +163,17 @@ const alphaReply = message => {
   } else if (message.includes('how are you')) {
     alphaResponse.text = 'Doing gooood';
   } else if (message.includes('weather')) {
-    alphaResponse.text = 'The weather is fine';
+    const speakTemperature = temp.innerHTML;
+    const speakDescription = desc.innerHTML;
+
+    const weatherDescription = `Right now in ${city}, it's ${speakTemperature} and ${speakDescription} `;
+    alphaResponse.text = weatherDescription;
   } else if (message.includes('bye')) {
     alphaResponse.text = `bye, ebrahim`;
   } else {
     alphaResponse.text = `i dont understand`;
   }
-  // console.log(alphaResponse.text);
-  alphaResponse.voice = voices[0];
+  // alphaResponse.voice = voices[0];
   alphaResponse.volume = 1;
   alphaResponse.rate = 1;
   alphaResponse.pitch = 1;
