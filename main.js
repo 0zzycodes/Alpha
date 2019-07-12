@@ -21,7 +21,12 @@ fetch(url)
     let description = data.weather[0].description;
     if (description.includes('broken clouds')) {
       description = 'Mostly Cloudy';
+    } else if (description.includes('few clouds')) {
+      description = 'Partialy Cloudy';
+    } else if (description.includes('shower rain')) {
+      description = 'with Showers';
     }
+
     temp.textContent = `${temperature} fahrenheit`;
     desc.textContent = description;
   })
